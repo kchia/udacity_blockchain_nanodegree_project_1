@@ -105,7 +105,6 @@ class Blockchain {
           resolve(block);
         }
       } catch (error) {
-        console.log(error);
         reject(error);
       }
     });
