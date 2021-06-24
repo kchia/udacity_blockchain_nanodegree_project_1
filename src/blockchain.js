@@ -149,7 +149,7 @@ class Blockchain {
           const result = stars.reduce(
             (filtered, { data: { address, star } = {} }) => {
               if (address === walletAddress) {
-                filtered.push({ star });
+                filtered.push({ owner: address, star });
               }
               return filtered;
             },
