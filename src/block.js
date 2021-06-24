@@ -12,7 +12,13 @@ class Block {
 
   validate = async () =>
     new Promise(async (resolve, reject) => {
-      this.hash === (await SHA256(JSON.stringify(this)))
+      this.hash ===
+      (await SHA256(
+        JSON.stringify({
+          ...this,
+          hash: null,
+        })
+      ).toString())
         ? resolve(true)
         : reject(false);
     });

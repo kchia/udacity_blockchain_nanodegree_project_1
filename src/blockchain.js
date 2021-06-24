@@ -46,15 +46,18 @@ class Blockchain {
   _addBlock = (block) =>
     new Promise(async (resolve, reject) => {
       try {
-        block.time = new Date().getTime().toString().slice(0, -3);
-        this.height++;
-        if (this.height > 0) {
-          block.previousBlockHash = this.chain[this.height - 1].hash;
-          block.height = this.height;
+        const validations = await this.validateChain();
+        if (this.height === -1 || validations.every((isValid) => isValid)) {
+          block.time = new Date().getTime().toString().slice(0, -3);
+          this.height++;
+          if (this.height > 0) {
+            block.previousBlockHash = this.chain[this.height - 1].hash;
+            block.height = this.height;
+          }
+          block.hash = await SHA256(JSON.stringify(block)).toString();
+          this.chain.push(block);
+          resolve(block);
         }
-        block.hash = await SHA256(JSON.stringify(block)).toString();
-        this.chain.push(block);
-        resolve(block);
       } catch (error) {
         reject(error);
       }
@@ -163,16 +166,17 @@ class Blockchain {
    * This method will return a Promise that will resolve with the list of errors when validating the chain.
    */
   validateChain = () =>
-    new Promise(async (resolve, reject) => {
-      const validationResults = this.chain.map(
-        ({ previousBlockHash, validate }, index, chain) => {
-          if (index > 0 && previousBlockHash !== chain[index - 1].hash) {
-            reject(new Error("The chain is broken."));
+    new Promise((resolve, reject) => {
+      Promise.all(
+        this.chain.map(async (block, index, chain) => {
+          if (index === 0) return true;
+          if (index > 0 && block.previousBlockHash === chain[index - 1].hash) {
+            return await block.validate();
           }
-          return validate();
-        }
-      );
-      resolve(validationResults);
+        })
+      )
+        .then(resolve)
+        .catch(reject);
     });
 }
 
