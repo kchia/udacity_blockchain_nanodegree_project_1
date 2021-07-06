@@ -104,7 +104,7 @@ class Blockchain {
           new Date().getTime().toString().slice(0, -3)
         );
         if (
-          currentTime - messageSentTime < 3000000 &&
+          currentTime - messageSentTime < 3000 &&
           bitcoinMessage.verify(message, address, signature)
         ) {
           const block = new Block({ data: { star, address } });
@@ -153,8 +153,8 @@ class Blockchain {
     let self = this;
     return new Promise((resolve, reject) => {
       Promise.all(
-        self.chain.map(async ({ height, getData }, index) =>
-          height > 0 ? await getData() : {}
+        self.chain.map(async (block) =>
+          block.height > 0 ? await block.getData() : {}
         )
       )
         .then((stars) => {
