@@ -32,8 +32,9 @@ class Blockchain {
    * Utility method that return a Promise that will resolve with the height of the chain
    */
   getChainHeight() {
+    let self = this;
     return new Promise((resolve, reject) => {
-      resolve(this.height);
+      resolve(self.height);
     });
   }
 
@@ -43,25 +44,27 @@ class Blockchain {
    * The method will return a Promise that will resolve with the block added
    * or reject if an error happen during the execution.
    */
-  _addBlock = (block) =>
-    new Promise(async (resolve, reject) => {
+  _addBlock(block) {
+    let self = this;
+    return new Promise(async (resolve, reject) => {
       try {
-        const validations = await this.validateChain();
-        if (this.height === -1 || validations.every((isValid) => isValid)) {
+        const validations = await self.validateChain();
+        if (self.height === -1 || validations.every((isValid) => isValid)) {
           block.time = new Date().getTime().toString().slice(0, -3);
-          this.height++;
-          if (this.height > 0) {
-            block.previousBlockHash = this.chain[this.height - 1].hash;
-            block.height = this.height;
+          self.height++;
+          if (self.height > 0) {
+            block.previousBlockHash = self.chain[self.height - 1].hash;
+            block.height = self.height;
           }
           block.hash = await SHA256(JSON.stringify(block)).toString();
-          this.chain.push(block);
+          self.chain.push(block);
           resolve(block);
         }
       } catch (error) {
         reject(error);
       }
     });
+  }
 
   /**
    * The requestMessageOwnershipVerification(address) method
@@ -92,8 +95,9 @@ class Blockchain {
    * @param {*} signature
    * @param {*} star
    */
-  submitStar = (address, message, signature, star) =>
-    new Promise(async (resolve, reject) => {
+  submitStar(address, message, signature, star) {
+    let self = this;
+    return new Promise(async (resolve, reject) => {
       try {
         const messageSentTime = parseInt(message.split(":")[1]);
         const currentTime = parseInt(
@@ -104,46 +108,52 @@ class Blockchain {
           bitcoinMessage.verify(message, address, signature)
         ) {
           const block = new Block({ data: { star, address } });
-          await this._addBlock(block);
+          await self._addBlock(block);
           resolve(block);
         }
       } catch (error) {
         reject(error);
       }
     });
+  }
 
   /**
    * This method will return a Promise that will resolve with the Block
    *  with the hash passed as a parameter.
    * @param {*} hash
    */
-  getBlockByHash = (hash) =>
-    new Promise((resolve, reject) => {
-      const block = this.chain.find((block) => block.hash === hash);
+  getBlockByHash(hash) {
+    let self = this;
+    return new Promise((resolve, reject) => {
+      const block = self.chain.find((block) => block.hash === hash);
       if (block) resolve(block);
       reject("Not found.");
     });
+  }
 
   /**
    * This method will return a Promise that will resolve with the Block object
    * with the height equal to the parameter `height`
    * @param {*} height
    */
-  getBlockByHeight = (height) =>
-    new Promise((resolve, reject) => {
-      let block = this.chain.find((block) => block.height === height);
+  getBlockByHeight(height) {
+    let self = this;
+    return new Promise((resolve, reject) => {
+      let block = self.chain.find((block) => block.height === height);
       if (block) resolve(block);
       reject("Not found");
     });
+  }
 
   /**
    * This method will return a Promise that will resolve with an array of decoded Stars objects existing in the chain and belonging to the owner with the wallet address passed as parameter.
    * @param {*} address
    */
-  getStarsByWalletAddress = (walletAddress) =>
-    new Promise((resolve, reject) => {
+  getStarsByWalletAddress(walletAddress) {
+    let self = this;
+    return new Promise((resolve, reject) => {
       Promise.all(
-        this.chain.map(async ({ height, getData }, index) =>
+        self.chain.map(async ({ height, getData }, index) =>
           height > 0 ? await getData() : {}
         )
       )
@@ -162,13 +172,15 @@ class Blockchain {
         })
         .catch(reject);
     });
+  }
   /**
    * This method will return a Promise that will resolve with the list of errors when validating the chain.
    */
-  validateChain = () =>
-    new Promise((resolve, reject) => {
+  validateChain() {
+    let self = this;
+    return new Promise((resolve, reject) => {
       Promise.all(
-        this.chain.map(async (block, index, chain) => {
+        self.chain.map(async (block, index, chain) => {
           if (index === 0) return true;
           if (index > 0 && block.previousBlockHash === chain[index - 1].hash) {
             return await block.validate();
@@ -178,6 +190,7 @@ class Blockchain {
         .then(resolve)
         .catch(reject);
     });
+  }
 }
 
 module.exports.Blockchain = Blockchain;

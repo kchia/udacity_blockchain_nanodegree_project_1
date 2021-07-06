@@ -10,25 +10,29 @@ class Block {
     this.previousBlockHash = null;
   }
 
-  validate = async () =>
-    new Promise(async (resolve, reject) => {
-      this.hash ===
+  async validate() {
+    let self = this;
+    return new Promise(async (resolve, reject) => {
+      self.hash ===
       (await SHA256(
         JSON.stringify({
-          ...this,
+          ...self,
           hash: null,
         })
       ).toString())
         ? resolve(true)
         : reject(false);
     });
+  }
 
-  getData = () =>
-    new Promise((resolve, reject) => {
-      this.height > 0
-        ? resolve(JSON.parse(hex2ascii(this.body)))
+  getData() {
+    let self = this;
+    return new Promise((resolve, reject) => {
+      self.height > 0
+        ? resolve(JSON.parse(hex2ascii(self.body)))
         : reject(new Error("Cannot get data from Genesis block"));
     });
+  }
 }
 
 module.exports = Block;
