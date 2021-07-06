@@ -104,7 +104,7 @@ class Blockchain {
           new Date().getTime().toString().slice(0, -3)
         );
         if (
-          currentTime - messageSentTime < 3000 &&
+          currentTime - messageSentTime < 300 &&
           bitcoinMessage.verify(message, address, signature)
         ) {
           const block = new Block({ data: { star, address } });
